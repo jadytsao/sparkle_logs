@@ -48,7 +48,10 @@ private fun topFeelingNames(entries: List<SparkleWithFeelings>, limit: Int = 3):
         .groupBy { it.name }
         .entries.sortedByDescending { it.value.size }
         .take(limit)
-        .map { it.key }
+        .map { (name, feelings) ->
+            val emoji = feelings.firstOrNull()?.emoji ?: ""
+            "$emoji$name"
+        }
 
 private fun commonThemeWords(entries: List<SparkleWithFeelings>): List<String> {
     val wordToEntryCount = mutableMapOf<String, Int>()

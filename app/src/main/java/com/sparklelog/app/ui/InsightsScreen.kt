@@ -17,7 +17,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,51 +52,56 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun InsightsScreen(viewModel: SparkleViewModel, modifier: Modifier = Modifier) {
+fun InsightsScreen(viewModel: SparkleViewModel, onOpenSettings: () -> Unit, modifier: Modifier = Modifier) {
     val sparkles by viewModel.sparkles.collectAsState()
     var selectedPeriod by remember { mutableStateOf(InsightPeriod.TODAY) }
 
-    if (sparkles.isEmpty()) {
-        EmptyState(modifier, message = "No sparkles yet — insights will show up here ✨")
-        return
-    }
+    Box(modifier = modifier.fillMaxSize()) {
+        if (sparkles.isEmpty()) {
+            EmptyState(Modifier.fillMaxSize(), message = "No sparkles yet — insights will show up here ✨")
+        } else {
+            val insight = remember(sparkles, selectedPeriod) { computeInsights(sparkles, selectedPeriod) }
+            val feelingMix = remember(sparkles, selectedPeriod) { computeFeelingMix(sparkles, selectedPeriod) }
+            val last7Days = remember(sparkles) { computeLast7Days(sparkles) }
 
-    val insight = remember(sparkles, selectedPeriod) { computeInsights(sparkles, selectedPeriod) }
-    val feelingMix = remember(sparkles, selectedPeriod) { computeFeelingMix(sparkles, selectedPeriod) }
-    val last7Days = remember(sparkles) { computeLast7Days(sparkles) }
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            "Insights",
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            InsightPeriod.entries.forEach { period ->
-                FilterChip(
-                    selected = period == selectedPeriod,
-                    onClick = { selectedPeriod = period },
-                    label = { Text(period.label) }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    "Insights",
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    InsightPeriod.entries.forEach { period ->
+                        FilterChip(
+                            selected = period == selectedPeriod,
+                            onClick = { selectedPeriod = period },
+                            label = { Text(period.label) }
+                        )
+                    }
+                }
+
+                InsightBubble(period = selectedPeriod, insight = insight)
+                BarChartCard(last7Days)
+                if (feelingMix.isNotEmpty()) {
+                    FeelingMixCard(feelingMix)
+                }
             }
         }
 
-        InsightBubble(period = selectedPeriod, insight = insight)
-        BarChartCard(last7Days)
-        if (feelingMix.isNotEmpty()) {
-            FeelingMixCard(feelingMix)
+        IconButton(onClick = onOpenSettings, modifier = Modifier.align(Alignment.TopEnd)) {
+            Icon(Icons.Filled.Settings, contentDescription = "Settings")
         }
     }
 }

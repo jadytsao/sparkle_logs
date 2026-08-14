@@ -7,6 +7,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -30,8 +31,17 @@ private sealed class Destination(val route: String, val label: String) {
 private val destinations = listOf(Destination.Add, Destination.ByDate, Destination.ByFeeling, Destination.Insights)
 
 @Composable
-fun AppNavigation(viewModel: SparkleViewModel) {
+fun AppNavigation(viewModel: SparkleViewModel, initialDestination: String? = null) {
     val navController = rememberNavController()
+
+    LaunchedEffect(initialDestination) {
+        initialDestination?.let { destination ->
+            navController.navigate(destination) {
+                popUpTo(navController.graph.findStartDestination().id)
+                launchSingleTop = true
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -45,9 +55,8 @@ fun AppNavigation(viewModel: SparkleViewModel) {
                         selected = selected,
                         onClick = {
                             navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                popUpTo(navController.graph.findStartDestination().id)
                                 launchSingleTop = true
-                                restoreState = true
                             }
                         },
                         icon = {
@@ -73,7 +82,10 @@ fun AppNavigation(viewModel: SparkleViewModel) {
             composable(Destination.Add.route) { AddSparkleScreen(viewModel) }
             composable(Destination.ByDate.route) { ByDateScreen(viewModel) }
             composable(Destination.ByFeeling.route) { ByFeelingScreen(viewModel) }
-            composable(Destination.Insights.route) { InsightsScreen(viewModel) }
+            composable(Destination.Insights.route) {
+                InsightsScreen(viewModel, onOpenSettings = { navController.navigate("settings") })
+            }
+            composable("settings") { SettingsScreen(onBack = { navController.popBackStack() }) }
         }
     }
 }

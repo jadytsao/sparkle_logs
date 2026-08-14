@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Sparkle Log</string>
+    <string name="add_sparkle_widget_description">Quickly log a new sparkle</string>
+    <string name="today_insight_widget_description">See today\'s top feelings and theme at a glance</string>
 </resources>
