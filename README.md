@@ -4,6 +4,9 @@ A simple Android app for logging small moments of fulfillment ("sparkles") durin
 
 ![Add](screenshots/01_add.png) ![By Date](screenshots/02_bydate.png) ![By Feeling](screenshots/03_byfeeling.png) ![Insights](screenshots/04_insights.png) ![Settings](screenshots/04_settings.png)
 
+| ![Add](screenshots/01_add.png) | ![By Date](screenshots/02_bydate.png) | ![By Feeling](screenshots/03_byfeeling.png) |  ![Insights](screenshots/04_insights.png) | ![Settings](screenshots/04_settings.png) |
+| :---: | :---: | :---: | :---: | :---: |
+
 ## Features
 
 - **Add** — log an event/moment and tag it with up to 3 feelings. Feelings start as free text; once created, they show up as reusable colored chips (with an emoji if you gave them one) so you never retype them. A new-feeling flow lets you pick a color and emoji on the spot.
