@@ -2,11 +2,7 @@
 
 A simple Android app for logging small moments of fulfillment ("sparkles") during your day — what happened, and how it made you feel.
 
-|                                  |                                        |
-| -------------------------------- | -------------------------------------- |
-| ![Add](screenshots/01_add.png)   | ![By Date](screenshots/02_bydate.png)  |
-| ![By Feeling](screenshots/03_byfeeling.png) | ![Insights](screenshots/04_insights.png) |
-| ![Settings](screenshots/04_settings.png) |  |
+![Add](screenshots/01_add.png) ![By Date](screenshots/02_bydate.png) ![By Feeling](screenshots/03_byfeeling.png) ![Insights](screenshots/04_insights.png) ![Settings](screenshots/04_settings.png)
 
 ## Features
 
