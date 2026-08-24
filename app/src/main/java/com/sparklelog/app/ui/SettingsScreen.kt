@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
 import com.sparklelog.app.SparkleLogApplication
 import com.sparklelog.app.data.BackupManager
+import com.sparklelog.app.data.ReminderNotifier
 import com.sparklelog.app.ui.theme.OrganicShapes
 import kotlinx.coroutines.launch
 import java.text.DateFormat
@@ -124,6 +125,22 @@ fun SettingsScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Import from file")
+                }
+            }
+        }
+
+        Text("Reminders", style = MaterialTheme.typography.titleMedium)
+        Surface(shape = OrganicShapes.medium, color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "A daily nudge fires around 8pm if you haven't logged anything since 6pm.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                OutlinedButton(
+                    onClick = { ReminderNotifier.showReminder(context) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Send test reminder")
                 }
             }
         }

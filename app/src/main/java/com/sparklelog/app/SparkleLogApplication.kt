@@ -10,6 +10,8 @@ import com.sparklelog.app.data.AppDatabase
 import com.sparklelog.app.data.BackupManager
 import com.sparklelog.app.data.BackupPreferences
 import com.sparklelog.app.data.BackupWorker
+import com.sparklelog.app.data.ReminderNotifier
+import com.sparklelog.app.data.ReminderWorker
 import com.sparklelog.app.data.SparkleRepository
 import com.sparklelog.app.widget.TodayInsightWidget
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +37,9 @@ class SparkleLogApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        ReminderNotifier.ensureChannel(this)
         scheduleDailyBackup()
+        scheduleDailyReminder()
 
         applicationScope.launch {
             repository.sparklesWithFeelings.debounce(3000).collect {
@@ -69,6 +73,28 @@ class SparkleLogApplication : Application() {
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "daily_backup",
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
+
+    private fun scheduleDailyReminder() {
+        val now = Calendar.getInstance()
+        val next8pm = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 20)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            if (before(now)) add(Calendar.DAY_OF_MONTH, 1)
+        }
+        val initialDelay = next8pm.timeInMillis - now.timeInMillis
+
+        val request = PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.DAYS)
+            .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "daily_reminder",
             ExistingPeriodicWorkPolicy.KEEP,
             request
         )
