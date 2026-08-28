@@ -48,6 +48,12 @@ class SparkleViewModel(private val repository: SparkleRepository) : ViewModel() 
         }
     }
 
+    fun deleteFeeling(feeling: Feeling) {
+        viewModelScope.launch {
+            repository.deleteFeeling(feeling.id)
+        }
+    }
+
     fun updateSparkle(id: Long, text: String, feelingIds: List<Long>) {
         val trimmedText = text.trim()
         if (trimmedText.isEmpty() || feelingIds.isEmpty()) return

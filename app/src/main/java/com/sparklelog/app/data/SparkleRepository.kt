@@ -41,6 +41,11 @@ class SparkleRepository(
         feelingDao.update(feeling.copy(colorHex = colorHex, emoji = emoji))
     }
 
+    /** Deletes the feeling only; the cross-ref FK cascades, so tagged sparkles keep their text and just lose this tag. */
+    suspend fun deleteFeeling(id: Long) {
+        feelingDao.delete(id)
+    }
+
     suspend fun exportAllData(): SparkleLogBackup {
         val feelings = feelingDao.getAll().first()
         val sparkles = sparkleDao.getAllWithFeelings().first()

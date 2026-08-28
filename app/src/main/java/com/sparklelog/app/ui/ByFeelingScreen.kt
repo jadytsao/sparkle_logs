@@ -103,6 +103,10 @@ fun ByFeelingScreen(viewModel: SparkleViewModel, modifier: Modifier = Modifier) 
                 viewModel.updateFeeling(feeling, colorHex, emoji)
                 editingFeeling = null
             },
+            onDelete = {
+                viewModel.deleteFeeling(feeling)
+                editingFeeling = null
+            },
             onDismiss = { editingFeeling = null }
         )
     }

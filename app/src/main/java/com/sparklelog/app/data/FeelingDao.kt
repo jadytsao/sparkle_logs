@@ -28,4 +28,7 @@ interface FeelingDao {
 
     @Query("DELETE FROM feelings")
     suspend fun deleteAll()
+
+    @Query("DELETE FROM feelings WHERE id = :id")
+    suspend fun delete(id: Long)
 }

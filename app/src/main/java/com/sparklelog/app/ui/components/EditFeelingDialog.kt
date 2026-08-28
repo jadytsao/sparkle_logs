@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +35,7 @@ fun EditFeelingDialog(
     currentColorHex: String,
     currentEmoji: String?,
     onSave: (colorHex: String, emoji: String?) -> Unit,
+    onDelete: () -> Unit,
     onDismiss: () -> Unit
 ) {
     var selectedColorHex by remember { mutableStateOf(currentColorHex) }
@@ -71,6 +74,10 @@ fun EditFeelingDialog(
                                 .clickable { selectedColorHex = hex }
                         )
                     }
+                }
+                HorizontalDivider()
+                TextButton(onClick = onDelete) {
+                    Text("Delete this feeling", color = MaterialTheme.colorScheme.error)
                 }
             }
         },
