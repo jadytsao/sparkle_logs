@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sparklelog.app.data.Feeling
 import com.sparklelog.app.data.SparkleWithFeelings
+import com.sparklelog.app.ui.components.DeleteFeelingConfirmDialog
 import com.sparklelog.app.ui.components.EditFeelingDialog
 import com.sparklelog.app.ui.components.EditSparkleDialog
 import com.sparklelog.app.ui.components.EmptyState
@@ -52,6 +53,7 @@ fun ByFeelingScreen(viewModel: SparkleViewModel, modifier: Modifier = Modifier) 
     var editingFeeling by remember { mutableStateOf<Feeling?>(null) }
     var editingSparkle by remember { mutableStateOf<SparkleWithFeelings?>(null) }
     var expandedFeelingId by remember { mutableStateOf<Long?>(null) }
+    var pendingDeleteFeeling by remember { mutableStateOf<Feeling?>(null) }
 
     if (feelings.isEmpty()) {
         EmptyState(modifier)
@@ -103,7 +105,28 @@ fun ByFeelingScreen(viewModel: SparkleViewModel, modifier: Modifier = Modifier) 
                 viewModel.updateFeeling(feeling, colorHex, emoji)
                 editingFeeling = null
             },
+            onDelete = {
+                editingFeeling = null
+                val attached = sparklesByFeelingId[feeling.id].orEmpty()
+                if (attached.isEmpty()) {
+                    viewModel.deleteFeeling(feeling)
+                } else {
+                    pendingDeleteFeeling = feeling
+                }
+            },
             onDismiss = { editingFeeling = null }
+        )
+    }
+
+    pendingDeleteFeeling?.let { feeling ->
+        DeleteFeelingConfirmDialog(
+            feelingName = feeling.name,
+            attachedSparkles = sparklesByFeelingId[feeling.id].orEmpty(),
+            onConfirmDelete = {
+                viewModel.deleteFeeling(feeling)
+                pendingDeleteFeeling = null
+            },
+            onDismiss = { pendingDeleteFeeling = null }
         )
     }
 

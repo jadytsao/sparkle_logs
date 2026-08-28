@@ -1,5 +1,6 @@
 package com.sparklelog.app.ui
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -23,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,6 +37,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sparklelog.app.data.MAX_FEELINGS_PER_SPARKLE
@@ -43,7 +51,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddSparkleScreen(viewModel: SparkleViewModel, modifier: Modifier = Modifier) {
     val feelings by viewModel.feelings.collectAsState()
@@ -56,6 +64,16 @@ fun AddSparkleScreen(viewModel: SparkleViewModel, modifier: Modifier = Modifier)
     var newFeelingEmoji by remember { mutableStateOf("") }
     var celebrateTrigger by remember { mutableIntStateOf(0) }
     var celebrationColors by remember { mutableStateOf(emptyList<Color>()) }
+
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val newFeelingBringIntoViewRequester = remember { BringIntoViewRequester() }
+
+    LaunchedEffect(showNewFeelingField) {
+        if (showNewFeelingField) {
+            newFeelingBringIntoViewRequester.bringIntoView()
+        }
+    }
 
     val pendingNewFeeling = showNewFeelingField && newFeelingText.isNotBlank()
     val totalSelectedCount = selectedFeelingIds.size + if (pendingNewFeeling) 1 else 0
@@ -79,9 +97,23 @@ fun AddSparkleScreen(viewModel: SparkleViewModel, modifier: Modifier = Modifier)
             selectedFeelingIds.size >= MAX_FEELINGS_PER_SPARKLE -> selectedFeelingIds.drop(1) + id
             else -> selectedFeelingIds + id
         }
+        // Tapping a feeling chip means they're done typing for now — dismiss the keyboard
+        // every time (not just the first tap) so Save is always reachable without an extra tap,
+        // even if they refocused the text field in between selections.
+        focusManager.clearFocus()
+        keyboardController?.hide()
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                })
+            }
+    ) {
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -150,12 +182,23 @@ fun AddSparkleScreen(viewModel: SparkleViewModel, modifier: Modifier = Modifier)
                     name = "+ new feeling",
                     color = MaterialTheme.colorScheme.secondary,
                     selected = showNewFeelingField,
-                    onClick = { showNewFeelingField = !showNewFeelingField }
+                    onClick = {
+                        // Opening the new-feeling panel claims a slot too — evict the oldest
+                        // pick if we're already at the max, same as picking a 4th existing chip,
+                        // so the highlighted count never exceeds MAX_FEELINGS_PER_SPARKLE.
+                        if (!showNewFeelingField && selectedFeelingIds.size >= MAX_FEELINGS_PER_SPARKLE) {
+                            selectedFeelingIds = selectedFeelingIds.drop(1)
+                        }
+                        showNewFeelingField = !showNewFeelingField
+                    }
                 )
             }
 
             if (showNewFeelingField) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.bringIntoViewRequester(newFeelingBringIntoViewRequester)
+                ) {
                     OutlinedTextField(
                         value = newFeelingText,
                         onValueChange = { newFeelingText = it },
